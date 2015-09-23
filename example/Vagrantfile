@@ -1,5 +1,19 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
+
+ddns_config = {
+  # DNS server
+  s: "127.0.0.1",
+  # Machine name
+  m: "myvm",
+  # Network interface
+  i: "eth0",
+  # Hostname
+  h: "myvm.localhost",
+  # DDNS key
+  k: "Klocalhost.+157+11776.key"
+}
+
 module OS
   def OS.windows?
     (/cygwin|mswin|mingw|bccwin|wince|emx/ =~ RUBY_PLATFORM) != nil
@@ -16,39 +30,37 @@ module OS
 end
 
 Vagrant.configure(2) do |config|
-
   config.vm.box = "ubuntu/trusty64"
-  config.vm.guest = :linux
   config.vm.box_url = "https://cloud-images.ubuntu.com/vagrant/trusty/current/trusty-server-cloudimg-amd64-vagrant-disk1.box"
   config.vm.box_download_checksum_type = "sha256"
   config.vm.box_download_checksum = "d9615654c5ea16b66d1fec1b9dbd4a9f3aeafd0bd59ac497040638f8789b3885"
-
   # config.vm.box = 'freebsd/FreeBSD-10.2-RELEASE'
-  # config.vm.guest = :freebsd
   # config.ssh.shell = "/bin/sh"
   # config.vm.synced_folder ".", "/vagrant", disabled: true
-
+  config.vm.hostname = ddns_config[:h]
+  config.vm.define ddns_config[:m].to_sym do |name_config| end
   config.vm.provider "virtualbox" do |vb|
-    # Display the VirtualBox GUI when booting the machine
+    vb.name = ddns_config[:m]
     vb.gui = false
-    # Customize the amount of memory on the VM:
     vb.memory = "1024"
   end
 
   # Run triggers
   config.trigger.after [:up, :resume, :reload] do
     if OS.windows? then
-      run 'powershell -ExecutionPolicy Unrestricted -File vagrant-ddns.ps1 -action add -interface eth0 -hostname foo.localhost -nsupdatekey "D:\Users\bstoots\Klocalhost.+157+11776.key"'
+      cmd = "powershell -ExecutionPolicy Unrestricted vagrant-ddns.ps1 -a add -s %{s} -i %{i} -h %{h} -k %{k}"
     else 
-      # 
+      # cmd = "bash vagrant-ddns.sh -a add -s %{s} -m %{m} -i %{i} -h %{h} -k %{k}"
     end
+    run cmd % ddns_config
   end
   config.trigger.after [:destroy, :suspend, :halt] do
     if OS.windows? then
-      run 'powershell -ExecutionPolicy Unrestricted -File vagrant-ddns.ps1 -action delete -interface eth0 -hostname foo.localhost -nsupdatekey "D:\Users\bstoots\Klocalhost.+157+11776.key"'
+      cmd = "powershell -ExecutionPolicy Unrestricted vagrant-ddns.ps1 -a delete -s %{s} -h %{h} -k %{k}"
     else
-      # 
+      # cmd = "bash vagrant-ddns.sh -a delete -s %{s} -m %{m} -h %{h} -k %{k}"
     end
+    run cmd % ddns_config
   end
 
 end

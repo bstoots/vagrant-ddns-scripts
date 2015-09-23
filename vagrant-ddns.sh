@@ -40,20 +40,20 @@ function get_ip_address {
 
 # Parse arguments
 dnsserver=127.0.0.1
-machinename=default
-while getopts ":a::d::m::i::h::k:" opt; do
+machineid=default
+while getopts ":a::s::m::i::h::k:" opt; do
   case $opt in
     a)
       # add, delete
       action=$OPTARG
       ;;
-    d)
+    s)
       # DNS server hostname or address
       dnsserver=$OPTARG
       ;;
     m)
       # vagrant machine name
-      machinename=$OPTARG
+      machineid=$OPTARG
       ;;
     i)
       # guest machine interface
@@ -76,13 +76,24 @@ while getopts ":a::d::m::i::h::k:" opt; do
       ;;
   esac
 done
+# Sanity check vars
+# Currently supported actions are add, delete
+if [ "$action" != "add" ] && [ "$action" != "delete" ]; then
+  echo "Invalid action, valid actions are: add, delete"
+  exit 1
+fi
+# If action is add we need an interface in order to determine IP address
+if [ "$action" = "add" ] && [ -z "$interface" ]; then
+  echo "Interface must be provided for add"
+  exit 1
+fi
 
 # Build nsupdate command 
 cmd_stack=""
 # Always specify DNS server for sanity
 cmd_stack+=$(nsupdate_server $dnsserver)
 if [ "$action" = "add" ]; then
-  ip=$(get_ip_address $machinename $interface)
+  ip=$(get_ip_address $machineid $interface)
   cmd_stack+=$(nsupdate_add $hostname $ip)
 elif [ "$action" = "delete" ]; then
   cmd_stack+=$(nsupdate_delete $hostname)

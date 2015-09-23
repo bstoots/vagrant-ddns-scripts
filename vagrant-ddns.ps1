@@ -3,13 +3,29 @@
 # 
 
 param (
-  [string]$action = $(throw "-action is required"),
-  [string]$dnsserver = "127.0.0.1",
-  [string]$machinename = "default",
-  [string]$interface = $(throw "-interface is required"),
-  [string]$hostname = $(throw "-hostname is required"),
-  [string]$nsupdatekey = $(throw "-nsupdatekey is required")
+  [string]$a = $(Throw "action is required. e.g. add, delete"),
+  [string]$s = $(Throw "server is required. e.g. 127.0.0.1, localhost"),
+  [string]$m,
+  [string]$i,
+  [string]$h = $(Throw "hostname is required. e.g. vm.localhost"),
+  [string]$k = $(Throw "nsupdatekey is required. e.g. C:\Path\To\Klocalhost.key")
 )
+# Sanity check vars
+# Currently supported actions are add, delete
+if ($a -ne "add" -and $a -ne "delete") {
+  Throw "Invalid action, valid actions are: add, delete"
+}
+# If action is add we need an interface in order to determine IP address
+if ($a -eq "add" -and ($i -eq $null -or $i -eq "")) {
+  Throw "Interface must be provided for add"
+}
+# Set vars again to give us an interface
+$action = $a
+$dnsserver = $s
+$machineid = $m
+$interface = $i
+$hostname = $h
+$nsupdatekey = $k
 
 <##
 #>
@@ -44,7 +60,7 @@ function Nsupdate-Send([array]$cmd_stack) {
  # work on all *nix based operating systems.  If not tune it until it does.
  #>
 function Get-Ip-Address() {
-  $ipcmd = "vagrant ssh $machinename -c `"ifconfig $interface | grep -oE 'inet.*?([0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3})'`""
+  $ipcmd = "vagrant ssh $machineid -c `"ifconfig $interface | grep -oE 'inet.*?([0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3})'`""
   $ip_line = Invoke-Expression $ipcmd 2>&1
   # Parse the output with more powerful PS regex capturing
   if ( $ip_line -match 'inet.*?([0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3})' -eq $true ) {
@@ -72,4 +88,4 @@ $cmd_stack = Nsupdate-Send $cmd_stack
 
 # Do the nsupdate
 $nsupcmd = "Write-Output `"" + [string]::join("`r`n", $cmd_stack) + "`" | nsupdate -v -k $nsupdatekey"
-$nsup_line = Invoke-Expression $nsupcmd 2>&1
+Invoke-Expression $nsupcmd
