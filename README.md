@@ -1,4 +1,4 @@
-# vagrant-triggers-ddns
+# vagrant-ddns-scripts
 
 ## Goals
 * Allow for dynamically updating DNS when Vagrant machines change state.
@@ -34,13 +34,13 @@
   C:\> vagrant global-status
   id       name    provider   state   directory
   -------------------------------------------------------------------------------------------------------
-  ea6156e  myvm    virtualbox running C:/Path/To/vagrant-triggers-ddns/example
+  ea6156e  myvm    virtualbox running C:/Path/To/vagrant-ddns-scripts/example
   
   # Explicitly add a DNS entry for this guest
-  C:\> vagrant-ddns -a add -s 127.0.0.1 -m ea6156e -h myvm.localhost -i eth0 -k C:\Path\To\vagrant-triggers-ddns\example\Klocalhost.+157+11776.key
+  C:\> vagrant-ddns -a add -s 127.0.0.1 -m ea6156e -h myvm.localhost -i eth0 -k C:\Path\To\vagrant-ddns-scripts\example\Klocalhost.+157+11776.key
 
   # Explicitly delete the DNS entry of this guest
-  C:\> vagrant-ddns -a delete -s 127.0.0.1 -m ea6156e -h myvm.localhost -k C:\Path\To\vagrant-triggers-ddns\example\Klocalhost.+157+11776.key
+  C:\> vagrant-ddns -a delete -s 127.0.0.1 -m ea6156e -h myvm.localhost -k C:\Path\To\vagrant-ddns-scripts\example\Klocalhost.+157+11776.key
   ```
 
 ### Implicit
