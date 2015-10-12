@@ -1,8 +1,8 @@
 #!/bin/bash
 
-# 
-# 
-# 
+#
+#
+#
 
 function nsupdate_server {
   echo "server $1\n"
@@ -22,7 +22,7 @@ function nsupdate_send {
 
 function get_ip_address {
   # Haven't tested this yet, need a Linux host ...
-  $ip_line = `vagrant ssh $1 -c "ifconfig $2 | grep -oE 'inet.*?([0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3})'"`
+  ip_line=`vagrant ssh $1 -c "ifconfig $2 | grep -oE 'inet.*?([0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3})'"`
   # ip_line=`ifconfig $2 | grep -oE 'inet.*?([0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3})'`
   linux_regex="inet addr:([0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3})"
   bsd_regex="inet ([0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3})"
@@ -88,7 +88,7 @@ if [ "$action" = "add" ] && [ -z "$interface" ]; then
   exit 1
 fi
 
-# Build nsupdate command 
+# Build nsupdate command
 cmd_stack=""
 # Always specify DNS server for sanity
 cmd_stack+=$(nsupdate_server $dnsserver)
@@ -98,7 +98,7 @@ if [ "$action" = "add" ]; then
 elif [ "$action" = "delete" ]; then
   cmd_stack+=$(nsupdate_delete $hostname)
 fi
-# Always append send at the end 
+# Always append send at the end
 cmd_stack+=$(nsupdate_send)
 # echo $cmd_stack
 
