@@ -40,7 +40,7 @@ function get_ip_address {
 
 # Parse arguments
 dnsserver=127.0.0.1
-machineid=default
+machineid=""
 while getopts ":a::s::m::i::h::k:" opt; do
   case $opt in
     a)
@@ -91,12 +91,12 @@ fi
 # Build nsupdate command
 cmd_stack=""
 # Always specify DNS server for sanity
-cmd_stack+=$(nsupdate_server $dnsserver)
+cmd_stack+=$(nsupdate_server "$dnsserver")
 if [ "$action" = "add" ]; then
-  ip=$(get_ip_address $machineid $interface)
+  ip=$(get_ip_address "$machineid" "$interface")
   cmd_stack+=$(nsupdate_add $hostname $ip)
 elif [ "$action" = "delete" ]; then
-  cmd_stack+=$(nsupdate_delete $hostname)
+  cmd_stack+=$(nsupdate_delete "$hostname")
 fi
 # Always append send at the end
 cmd_stack+=$(nsupdate_send)
