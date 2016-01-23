@@ -1,23 +1,39 @@
 #!/bin/bash
+# set -e
 
 #
 #
 #
+
+function _assign {
+  eval "$1=$_return"
+  _return=''
+}
+
+function _return {
+  echo "$_return"
+  _return=''
+}
+
+function _exit {
+  echo $2
+  exit $1
+}
 
 function nsupdate_server {
-  echo "server $1\n"
+  _return="server $1\n"
 }
 
 function nsupdate_add {
-  echo "update add $1 60 A $2\n"
+  _return="update add $1 60 A $2\n"
 }
 
 function nsupdate_delete {
-  echo "update delete $1\n"
+  _return="update delete $1\n"
 }
 
 function nsupdate_send {
-  echo "send"
+  _return="send"
 }
 
 function get_ip_address {
@@ -27,15 +43,13 @@ function get_ip_address {
   linux_regex="inet addr:([0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3})"
   bsd_regex="inet ([0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3})"
   # echo $ip_line
-  if [[ $ip_line =~ $linux_regex ]]; then
-    ip=${BASH_REMATCH[1]}
-  elif [[ $ip_line =~ $bsd_regex ]]; then
-    ip=${BASH_REMATCH[1]}
+  if [[ "$ip_line" =~ "$linux_regex" ]]; then
+    _return=${BASH_REMATCH[1]}
+  elif [[ "$ip_line" =~ "$bsd_regex" ]]; then
+    _return=${BASH_REMATCH[1]}
   else
-    echo "No IP address found, ip_line was: $ip_line"
-    exit 1
+    _exit 1 "No IP address found, ip_line was: $ip_line"
   fi
-  echo $ip
 }
 
 # Parse arguments
@@ -79,27 +93,25 @@ done
 # Sanity check vars
 # Currently supported actions are add, delete, dryadd, drydelete
 if [ "$action" != "add" ] && [ "$action" != "delete" ] && [ "$action" != "dryadd" ] && [ "$action" != "drydelete" ]; then
-  echo "Invalid action, valid actions are: add, delete, dryadd, drydelete"
-  exit 1
+  _exit 1 "Invalid action, valid actions are: add, delete, dryadd, drydelete"
 fi
 # If action is add or dryadd we need an interface in order to determine IP address
 if ([ "$action" = "add" ] || [ "$action" = "dryadd" ]) && [ -z "$interface" ]; then
-  echo "Interface must be provided for $action"
-  exit 1
+  _exit 1 "Interface must be provided for $action"
 fi
 
 # Build nsupdate command
 cmd_stack=""
 # Always specify DNS server for sanity
-cmd_stack+=$(nsupdate_server "$dnsserver")
+cmd_stack+=$(nsupdate_server "$dnsserver" && _return)
 if [ "$action" = "add" ] || [ "$action" = "dryadd" ]; then
-  ip=$(get_ip_address "$machineid" "$interface")
-  cmd_stack+=$(nsupdate_add $hostname $ip)
+  get_ip_address "$machineid" "$interface" && _assign ip
+  cmd_stack+=$(nsupdate_add $hostname $ip && _return)
 elif [ "$action" = "delete" ] || [ "$action" = "drydelete" ]; then
-  cmd_stack+=$(nsupdate_delete "$hostname")
+  cmd_stack+=$(nsupdate_delete "$hostname" && _return)
 fi
 # Always append send at the end
-cmd_stack+=$(nsupdate_send)
+cmd_stack+=$(nsupdate_send && _return)
 # echo $cmd_stack
 
 # Do the nsupdate if this is not a dryrun
