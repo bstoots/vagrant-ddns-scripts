@@ -20,6 +20,7 @@
 
 ### Options
 * **-a**: _(Required)_ nsupdate actions.  Currently add, delete, dryadd, and drydelete are supported.
+* **-e**: _(Optional)_ run with elevated permissions.  Executes ifconfig as sudo.
 * **-s**: _(Required)_ DNS server supporting DDNS updates.  IP address or hostname.
 * **-m**: _(Optional)_ Vagrant machine id.  Optional for implicit usage, Required for explicit.
 * **-i**: _(Optional)_ Interface on the guest machine to extract IP address from.  Required when action is add.
