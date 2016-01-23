@@ -58,7 +58,7 @@ machineid=""
 while getopts ":a::s::m::i::h::k:" opt; do
   case $opt in
     a)
-      # add, delete
+      # add, delete, dryadd, drydelete
       action=$OPTARG
       ;;
     s)
