@@ -36,16 +36,19 @@ function nsupdate_send {
   _return="send"
 }
 
+# $1 - machineid
+# $2 - interface
+# $3 - elevated
 function get_ip_address {
   # Haven't tested this yet, need a Linux host ...
-  ip_line=`vagrant ssh $1 -c "ifconfig $2 | grep -oE 'inet.*?([0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3})'"`
+  ip_line=`vagrant ssh $1 -c "$3 ifconfig $2 | grep -oE 'inet.*?([0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3})'"`
   # ip_line=`ifconfig $2 | grep -oE 'inet.*?([0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3})'`
   linux_regex="inet addr:([0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3})"
   bsd_regex="inet ([0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3})"
   # echo $ip_line
-  if [[ "$ip_line" =~ "$linux_regex" ]]; then
+  if [[ "$ip_line" =~ $linux_regex ]]; then
     _return=${BASH_REMATCH[1]}
-  elif [[ "$ip_line" =~ "$bsd_regex" ]]; then
+  elif [[ "$ip_line" =~ $bsd_regex ]]; then
     _return=${BASH_REMATCH[1]}
   else
     _exit 1 "No IP address found, ip_line was: $ip_line"
@@ -54,12 +57,17 @@ function get_ip_address {
 
 # Parse arguments
 dnsserver=127.0.0.1
-machineid=""
-while getopts ":a::s::m::i::h::k:" opt; do
+machineid=''
+elevated=''
+while getopts ":a:es:m:i:h:k:" opt; do
   case $opt in
     a)
       # add, delete, dryadd, drydelete
       action=$OPTARG
+      ;;
+    e)
+      # toggle use of elevated permissions on (sudo)
+      elevated='sudo'
       ;;
     s)
       # DNS server hostname or address
@@ -105,7 +113,7 @@ cmd_stack=""
 # Always specify DNS server for sanity
 cmd_stack+=$(nsupdate_server "$dnsserver" && _return)
 if [ "$action" = "add" ] || [ "$action" = "dryadd" ]; then
-  get_ip_address "$machineid" "$interface" && _assign ip
+  get_ip_address "$machineid" "$interface" "$elevated" && _assign ip
   cmd_stack+=$(nsupdate_add $hostname $ip && _return)
 elif [ "$action" = "delete" ] || [ "$action" = "drydelete" ]; then
   cmd_stack+=$(nsupdate_delete "$hostname" && _return)
