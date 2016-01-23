@@ -103,8 +103,8 @@ cmd_stack+=$(nsupdate_send)
 # echo $cmd_stack
 
 # Do the nsupdate if this is not a dryrun
-if [ "$action" = "dryadd" ] || [ "$action" = "drydelete" ]; then
-  echo "Dry-run command: echo -e ${cmd_stack} | nsupdate -v -k $nsupdatekey" 2>&1
-else
+if [ "$action" = "add" ] || [ "$action" = "delete" ]; then
   echo -e "${cmd_stack}" | nsupdate -v -k $nsupdatekey 2>&1
+elif [ "$action" = "dryadd" ] || [ "$action" = "drydelete" ]; then
+  echo "Dry-run command: echo -e ${cmd_stack} | nsupdate -v -k $nsupdatekey" 2>&1
 fi
