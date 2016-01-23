@@ -19,7 +19,7 @@
 * There are two ways you can use the vagrant-ddns scripts, implicitly within a Vagrant project or explicitly via the command line.
 
 ### Options
-* **-a**: _(Required)_ nsupdate actions.  Currently add and delete are supported.
+* **-a**: _(Required)_ nsupdate actions.  Currently add, delete, dryadd, and drydelete are supported.
 * **-s**: _(Required)_ DNS server supporting DDNS updates.  IP address or hostname.
 * **-m**: _(Optional)_ Vagrant machine id.  Optional for implicit usage, Required for explicit.
 * **-i**: _(Optional)_ Interface on the guest machine to extract IP address from.  Required when action is add.
