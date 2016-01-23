@@ -16,8 +16,8 @@ if ($a -ne "add" -and $a -ne "delete" -and $a -ne "dryadd" -and $a -ne "drydelet
   Throw "Invalid action, valid actions are: add, delete, dryadd, drydelete"
 }
 # If action is add we need an interface in order to determine IP address
-if ($a -eq "add" -and ($i -eq $null -or $i -eq "")) {
-  Throw "Interface must be provided for add"
+if (($a -eq "add" -or $a -eq "dryadd") -and ($i -eq $null -or $i -eq "")) {
+  Throw "Interface must be provided for " + $a
 }
 # Set vars again to give us an interface
 $action = $a
@@ -92,5 +92,5 @@ if ($action -eq "add" -or $action -eq "delete") {
   Invoke-Expression $nsupcmd
 }
 elseif ($action -eq "dryadd" -or $action -eq "drydelete") {
-  Write-Output $nsupcmd
+  Write-Output "Dry-run command: $nsupcmd"
 }

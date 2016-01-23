@@ -84,7 +84,7 @@ if [ "$action" != "add" ] && [ "$action" != "delete" ] && [ "$action" != "dryadd
 fi
 # If action is add or dryadd we need an interface in order to determine IP address
 if ([ "$action" = "add" ] || [ "$action" = "dryadd" ]) && [ -z "$interface" ]; then
-  echo "Interface must be provided for add"
+  echo "Interface must be provided for $action"
   exit 1
 fi
 
