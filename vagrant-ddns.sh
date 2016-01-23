@@ -33,7 +33,7 @@ function get_ip_address {
     ip=${BASH_REMATCH[1]}
   else
     echo "No IP address found, ip_line was: $ip_line"
-    exit
+    exit 1
   fi
   echo $ip
 }
@@ -77,14 +77,14 @@ while getopts ":a::s::m::i::h::k:" opt; do
   esac
 done
 # Sanity check vars
-# Currently supported actions are add, delete
-if [ "$action" != "add" ] && [ "$action" != "delete" ]; then
-  echo "Invalid action, valid actions are: add, delete"
+# Currently supported actions are add, delete, dryadd, drydelete
+if [ "$action" != "add" ] && [ "$action" != "delete" ] && [ "$action" != "dryadd" ] && [ "$action" != "drydelete" ]; then
+  echo "Invalid action, valid actions are: add, delete, dryadd, drydelete"
   exit 1
 fi
-# If action is add we need an interface in order to determine IP address
-if [ "$action" = "add" ] && [ -z "$interface" ]; then
-  echo "Interface must be provided for add"
+# If action is add or dryadd we need an interface in order to determine IP address
+if ([ "$action" = "add" ] || [ "$action" = "dryadd" ]) && [ -z "$interface" ]; then
+  echo "Interface must be provided for $action"
   exit 1
 fi
 
@@ -92,15 +92,19 @@ fi
 cmd_stack=""
 # Always specify DNS server for sanity
 cmd_stack+=$(nsupdate_server "$dnsserver")
-if [ "$action" = "add" ]; then
+if [ "$action" = "add" ] || [ "$action" = "dryadd" ]; then
   ip=$(get_ip_address "$machineid" "$interface")
   cmd_stack+=$(nsupdate_add $hostname $ip)
-elif [ "$action" = "delete" ]; then
+elif [ "$action" = "delete" ] || [ "$action" = "drydelete" ]; then
   cmd_stack+=$(nsupdate_delete "$hostname")
 fi
 # Always append send at the end
 cmd_stack+=$(nsupdate_send)
 # echo $cmd_stack
 
-# Do the nsupdate
-echo -e "${cmd_stack}" | nsupdate -v -k $nsupdatekey 2>&1
+# Do the nsupdate if this is not a dryrun
+if [ "$action" = "add" ] || [ "$action" = "delete" ]; then
+  echo -e "${cmd_stack}" | nsupdate -v -k $nsupdatekey 2>&1
+elif [ "$action" = "dryadd" ] || [ "$action" = "drydelete" ]; then
+  echo "Dry-run command: echo -e ${cmd_stack} | nsupdate -v -k $nsupdatekey" 2>&1
+fi
