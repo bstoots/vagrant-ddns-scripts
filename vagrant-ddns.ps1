@@ -63,7 +63,7 @@ function Get-Ip-Address() {
   $ipcmd = "vagrant ssh $machineid -c `"ifconfig $interface | grep -oE 'inet.*?([0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3})'`""
   $ip_line = Invoke-Expression $ipcmd 2>&1
   # Parse the output with more powerful PS regex capturing
-  if ( $ip_line -match 'inet.*?([0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3})' -eq $true ) {
+  if ( "$ip_line" -match 'inet.*?([0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3})' -eq $true ) {
     return $matches[1]
   }
   else {
